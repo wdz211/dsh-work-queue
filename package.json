@@ -1,0 +1,41 @@
+{
+  "name": "dsh-work-queue",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Persistent work-ticket state machine + system health ledger for DeepSeek Harness; tickets outlive sessions.",
+  "license": "MIT",
+  "author": "wdz211",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wdz211/dsh-work-queue.git"
+  },
+  "homepage": "https://github.com/wdz211/dsh-work-queue#readme",
+  "bugs": {
+    "url": "https://github.com/wdz211/dsh-work-queue/issues"
+  },
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "lib",
+    "src",
+    "test",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

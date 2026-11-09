@@ -1,0 +1,32 @@
+# Bundle patch：顶层必须是 YAML 数组（DSH Loader 的硬要求）。
+#
+# `id` 是配置行身份，`name` 是 Loader 真正 import 的包名。
+# 默认值刻意「只读优先、可回退」：
+#   - enabled: true        → 装上就生效（不生效的插件等于没装）
+#   - dataDir: ''          → 运行时解析为 <homedir>/.dsh-beta/workqueue
+#                            （不写死绝对路径：家目录在别的机器上不一样）
+#   - acceptMode: observe  → 只是**首次引导**的初始档位；策略文件还不存在时才会被写成 version 1。
+#                            真正生效的档位在 <dataDir>/policy.json（M5 版本化：每次改动 version+1 并留档）。
+#                            三档含义：off=看门狗不扫描 / observe=扫描+提醒但绝不改单 / auto=**尚未实现**
+#                            （读到会降级为 observe 并在返回里标 downgraded，绝不假装在自动干活）。
+#   - health.enabled: true → 健康账随包启动。
+#   - health.intervalMinutes → **静默巡检间隔**（0 = 关）：进程内每 N 分钟跑一次
+#        health.check() + work_watchdog 扫描，只在「状态跃迁」时唤醒 agent（判据见 lib/poller.mjs）。
+#        以前这个键定义了却没人读，探活全靠「看门狗巡检」cron 每 30 分钟烧一个 LLM 回合。
+#        10 分钟 = 探活粒度比原来细 3 倍，而 LLM 回合从 48 轮/天降到 0（无异常时）。
+- insert:
+    - id: work-queue
+      name: '@local/dsh-work-queue'
+      config:
+        enabled: true
+        dataDir: ''
+        acceptMode: 'observe'
+        health:
+          enabled: true
+          intervalMinutes: 10
+        watchdog:
+          # 停滞阈值：工单开着但超过这么久没动 → 派生为 idle，看门狗会列出来。
+          # 看门狗**只列不改**：它连索引都不重建写盘，扫完还会用 sha256 自证没碰过文件。
+          idleMs: 7200000        # 2 小时
+          # 等待阈值：等回话 / 等审阅超过这么久 → 列进 waiting。
+          waitingMs: 86400000    # 24 小时
